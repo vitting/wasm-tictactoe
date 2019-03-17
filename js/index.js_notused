@@ -1,0 +1,214 @@
+// import("../crate/pkg").then(module => {
+//   module.run();
+// });
+
+let canvas = document.getElementById("canvas");
+let button = document.getElementById("newGameButton");
+let ctx = canvas.getContext("2d");
+let width = canvas.clientWidth;
+let height = canvas.clientHeight;
+let colCount = 3;
+let rowCount = 3;
+let cellWidth = 200;
+let cellHeight = 200;
+let moves = [];
+let currentPlayer = 0;
+const CELL_ELMENT_COLOR = "#052354";
+const GRID_COLOR = "#000000"
+
+canvas.width = width;
+canvas.height = height;
+
+let CellTypeEnum = {
+    NONE: 0,
+    CIRCLE: 1,
+    CROSS: 2
+};
+
+button.addEventListener("click", (e) => {
+    run();
+});
+
+function parseCells() {
+
+}
+
+function run() {
+    clearGrid();
+    drawGrid();
+    
+    if (currentPlayer === 0) {
+        canvas.addEventListener("click", (e) => {
+            let index = getIndex(getRowCol(getMousePos(canvas, e)));
+            if (currentPlayer === 1) {
+                moves[index].type = CellTypeEnum.CROSS;
+                drawCell(moves[index].x, moves[index].y, moves[index].type);
+                setPlayerToMove(2);
+            } else {
+                moves[index].type = CellTypeEnum.CIRCLE;
+                drawCell(moves[index].x, moves[index].y, moves[index].type);
+                setPlayerToMove(1);
+            }
+        });
+    }
+    
+    setPlayerToMove(getPlayerToStart());
+    showHidePlayerToMove(true);
+}
+
+function showHidePlayerToMove(show) {
+    const playerToStart = document.getElementById("playerToStart");
+    if (show) {
+        playerToStart.style.display = "block";
+    } else {
+        playerToStart.style.display = "none";
+    }
+}
+
+function setPlayerToMove(playerNymber) {
+    const playerToStartText = document.getElementById("playerToStartValue");
+    currentPlayer = playerNymber;
+    playerToStartText.innerText = currentPlayer;
+    
+}
+
+function getPlayerToStart() {
+    return (Math.floor((Math.random() * 10) + 1) % 2) + 1;
+}
+
+function clearGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawMoves() {
+
+}
+
+function drawGrid() {
+    let cellsX = [];
+    let cellsY = [];
+    let lineCorrection = 0.5;
+
+    // Draw Grid
+    ctx.beginPath();
+    ctx.strokeStyle = GRID_COLOR;
+    ctx.lineWidth = 2;
+    for (let index = 0; index < width; index++) {
+        if (index % cellWidth === 0) {
+            cellsX.push(index);
+
+            ctx.moveTo(index + lineCorrection, 0 + lineCorrection);
+            ctx.lineTo(index + lineCorrection, height + lineCorrection);
+        }
+    }
+
+    for (let index = 0; index < height; index++) {
+        if (index % cellHeight === 0) {
+            cellsY.push(index);
+
+            ctx.moveTo(lineCorrection, index + lineCorrection);
+            ctx.lineTo(height + lineCorrection, index + lineCorrection);
+        }
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+
+    // Draw Border
+    ctx.beginPath();
+    ctx.strokeStyle = GRID_COLOR;
+    ctx.lineWidth = 3.5;
+    ctx.rect(0, 0, width, height);
+    ctx.closePath();
+    ctx.stroke();
+
+    if (moves.length === 0) {
+        setCellsCoordinates(cellsX, cellsY);
+    }
+
+}
+
+function setCellsCoordinates(cellsX, cellsY) {
+    cellsY.forEach((y) => {
+        cellsX.forEach((x) => {
+            moves.push({
+                x: x,
+                y: y,
+                type: CellTypeEnum.NONE
+            });
+        });
+
+    });
+}
+
+function drawCell(x, y, type) {
+    // clearGrid();
+    drawGrid();
+
+    if (type === 1) {
+        drawCircle(x, y);
+    } else if (type === 2) {
+        drawCross(x, y);
+    }
+}
+
+function drawCircle(x, y) {
+    ctx.beginPath();
+    ctx.fillStyle = CELL_ELMENT_COLOR;
+    ctx.arc(x + 100, y + 100, 80, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.fillStyle = "white";
+    ctx.arc(x + 100, y + 100, 60, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawCross(x, y) {
+    const PADDING = 35;
+    ctx.beginPath();
+    ctx.lineWidth = 20;
+    ctx.strokeStyle = CELL_ELMENT_COLOR;
+    ctx.moveTo(x + PADDING, y + PADDING);
+    ctx.lineTo(x + cellWidth - PADDING, y + cellHeight - PADDING);
+    ctx.moveTo(x + cellWidth - PADDING, y + PADDING);
+    ctx.lineTo(x + PADDING, y + cellHeight - PADDING);
+    ctx.closePath();
+    ctx.stroke();
+}
+
+function getMousePos(canvas, event) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+}
+
+function getRowCol(mousePos) {
+    // Col
+    let x = Math.floor(mousePos.x / cellWidth);
+
+    // Row
+    let y = Math.floor(mousePos.y / cellHeight);
+
+    return {
+        row: Math.floor(y),
+        col: Math.floor(x)
+    };
+}
+
+function getCellCoordinates(rowCol) {
+    let x = rowCol.col * cellWidth;
+    let y = rowCol.row * cellHeight;
+    return {
+        x: x,
+        y: y
+    }
+}
+
+function getIndex(rowCol) {
+    return rowCol.row * colCount + rowCol.col;
+}
+
+drawGrid();
