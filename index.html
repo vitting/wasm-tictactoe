@@ -22,11 +22,23 @@
         font-family: Arial, Helvetica, sans-serif;
       }
 
-      #playerToStart {
+      #title {
         display:  none;
-        background-color: #052354;
+        background-color: #0bbaf0;
         color: white;
         padding: 5px;
+      }
+
+      #textContainer {
+        display:  none;
+        background-color: #2aa361;
+        color: white;
+        padding: 5px;
+      }
+
+      #playerToStartValue {
+        font-weight: bold;
+        color: black;
       }
 
       #newGameButton {
@@ -49,7 +61,8 @@
     <div id="container">
         <div id="titleContainer">
           <button id="newGameButton" type="button">NEW GAME</button>   
-          <div id="playerToStart">Player <span id="playerToStartValue"></span> to make a move</div>
+          <div id="title">Player <span id="playerToStartValue"></span> to make a move</div>
+          <div id="textContainer">TEST</div>
         </div>
         <canvas id="canvas"></canvas>
     </div>

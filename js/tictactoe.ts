@@ -1,24 +1,4 @@
-enum CellType {
-    None = 0,
-    Cross = 1,
-    Circle = 2
-}
-
-interface IMousePos {
-    x: number;
-    y: number;
-}
-
-interface IRowCol {
-    col: number;
-    row: number;
-}
-
-interface IMove {
-    x: number;
-    y: number;
-    type: CellType;
-}
+import { CellType, WinnerEnum, IMove, IParseResult, IMousePos, IRowCol, IWinner } from "./tictactoe_types";
 
 export class TicTacToe {
     private _canvas: HTMLCanvasElement;
@@ -31,53 +11,90 @@ export class TicTacToe {
     private _cellWidth: number = 200;
     private _cellHeight: number = 200;
     private _moves: IMove[] = [];
+    private _moveCount: number = 0;
     private _currentPlayer: number = 0;
     private _cellElementColor: string = "#052354";
     private _gridColor: string = "#000000";
+    private _cellElementFillColor: string = "rgba(5,35,84, 0.5)";
 
     constructor() {}
 
     public run() {
-        this._canvas = document.getElementById("canvas") as HTMLCanvasElement;
         this._button = document.getElementById("newGameButton") as HTMLButtonElement;
-        this._ctx = this._canvas.getContext("2d");
-        this._width = this._canvas.clientWidth;
-        this._height = this._canvas.clientHeight;
+    
         this._button.addEventListener("click", (_e) => {
             this.newGame();
         });
 
+        this.initRun();    
+    }
+
+    private initRun() {
+        this._canvas = document.getElementById("canvas") as HTMLCanvasElement;
+        this._ctx = this._canvas.getContext("2d");
+        this._width = this._canvas.clientWidth;
+        this._height = this._canvas.clientHeight;
         this._canvas.width = this._width;
         this._canvas.height = this._height;
-
         this.drawGrid(); 
     }
 
     private newGame() {
+        this._currentPlayer = 0;
+        this._moveCount = 0;
+        this._moves = [];    
         this.clearGrid();
         this.drawGrid();
         
-        if (this._currentPlayer === 0) {
-            this._canvas.addEventListener("click", (e) => {
-                let index = this.getIndex(this.getRowCol(this.getMousePos(this._canvas, e)));
-                if (this._currentPlayer === 1) {
-                    this._moves[index].type = CellType.Cross;
-                    this.drawCell(this._moves[index].x, this._moves[index].y, this._moves[index].type);
-                    this.setPlayerToMove(2);
-                } else {
-                    this._moves[index].type = CellType.Circle;
-                    this.drawCell(this._moves[index].x, this._moves[index].y, this._moves[index].type);
-                    this.setPlayerToMove(1);
-                }
-            });
-        }
+        this._canvas.addEventListener("click", (e) => this.canvasClick(e));
         
         this.setPlayerToMove(this.getPlayerToStart());
-        this.showHidePlayerToMove(true);
+        // this.showHidePlayerToMove(true);
     }    
 
+    private canvasClick(e: MouseEvent) {
+        let index = this.getIndex(this.getRowCol(this.getMousePos(this._canvas, e)));
+        this.addMove(index);
+    }
+
+    private addMove(cell: number) {
+        let move: IMove = this._moves[cell];
+        if (move.type === 0 && this.isThereMoreMoves()) {
+            if (this._currentPlayer === 1) {
+                this._moves[cell].type = CellType.Cross;
+                this.drawCell(this._moves[cell].x, this._moves[cell].y, this._moves[cell].type);
+                this.setPlayerToMove(2);
+            } else {
+                this._moves[cell].type = CellType.Circle;
+                this.drawCell(this._moves[cell].x, this._moves[cell].y, this._moves[cell].type);
+                this.setPlayerToMove(1);
+            }
+
+            this._moveCount++;
+            
+            const winner = this.checkForWinner(this.parseCells());
+            if (winner.winnerType != WinnerEnum.None) {
+                this._moveCount = 10;
+                this.drawWinner(winner.cells);
+                this.showText("Winner is player " + winner.winnerType);
+            }
+        }
+    }
+
+    private showText(text: string) {
+        this.showHidePlayerToMove(false);
+        const textContainer = document.getElementById("textContainer");
+        if (text != "") {
+            textContainer.style.display = "block";
+            textContainer.innerText = text;
+        } else {
+            textContainer.style.display = "none";
+        }
+        
+    }
+
     private showHidePlayerToMove(show: boolean) {
-        const playerToStart = document.getElementById("playerToStart");
+        const playerToStart = document.getElementById("title");
         if (show) {
             playerToStart.style.display = "block";
         } else {
@@ -86,6 +103,8 @@ export class TicTacToe {
     }
     
     private setPlayerToMove(playerNymber: number) {
+        this.showText("");
+        this.showHidePlayerToMove(true);
         const playerToStartText = document.getElementById("playerToStartValue");
         this._currentPlayer = playerNymber;
         playerToStartText.innerText = this._currentPlayer.toString();
@@ -98,10 +117,6 @@ export class TicTacToe {
     
     private clearGrid() {
         this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-    }
-    
-    private drawMoves() {
-    
     }
     
     private drawGrid() {
@@ -160,14 +175,26 @@ export class TicTacToe {
     
         });
     }
+
+    private drawMessage() {
+        
+    }
+
+    private drawWinner(cells: IMove[]) {
+        this._ctx.beginPath();
+        this._ctx.fillStyle = this._cellElementFillColor;
+        for (let index = 0; index < cells.length; index++) {
+            const cell = cells[index];
+            this._ctx.fillRect(cell.x, cell.y, this._cellWidth, this._cellHeight);    
+        }
+        
+        this._ctx.closePath();
+    }
     
     private drawCell(x: number, y: number, type: CellType) {
-        // clearGrid();
-        this.drawGrid();
-    
-        if (type === CellType.Cross) {
+        if (type === CellType.Circle) {
             this.drawCircle(x, y);
-        } else if (type === CellType.Circle) {
+        } else if (type === CellType.Cross) {
             this.drawCross(x, y);
         }
     }
@@ -231,9 +258,100 @@ export class TicTacToe {
         return rowCol.row * this._colCount + rowCol.col;
     }
 
-    private parseCells() {
+    private isThereMoreMoves() {
+        return this._moveCount < 9;
+    }
 
+    private parseCells(): IParseResult {
+        let rows: IMove[][] = [];
+        let cols: IMove[][] = [];
+        let crossLR: IMove[] = [];
+        let crossRL: IMove[] = [];
+        
+        for (let r = 0; r < this._rowCount; r++) {
+            let start = r * this._rowCount;
+            let end = start + this._rowCount;
+            let row = this._moves.slice(start, end);
+            // Get row
+            rows.push(row);    
+
+            // Get Cross Left-Right | Right-Left
+            crossLR.push(row[r]);
+            crossRL.push(row[row.length - 1 - r]);
+
+            // Get Cols
+            for (let i = 0; i < row.length; i++) {
+                const move = row[i];
+                
+                if (cols[i] === undefined) {
+                    cols.push([move]);
+                } else {
+                    cols[i].push(move);
+                }
+            }
+        }
+
+        return {
+            rows: rows,
+            cols: cols,
+            cross: [crossLR, crossRL]
+        };
+    }
+
+    private checkForWinner(parsedCells: IParseResult): IWinner {
+        const rowResult = this.checkResult(parsedCells.rows);
+
+        if (rowResult.winnerType != WinnerEnum.None) {
+            return rowResult;
+        } 
+
+        const colResult = this.checkResult(parsedCells.cols);
+
+        if (colResult.winnerType != WinnerEnum.None) {
+            return colResult;
+        }
+
+        return this.checkResult(parsedCells.cross);
+    }
+
+    private checkResult(value: IMove[][]): IWinner {
+        let returnValue: IWinner = {
+            winnerType: WinnerEnum.None, 
+            cells: []
+        };
+
+        for (let x = 0; x < value.length; x++) {
+            const element = value[x];
+            let player1Count = 0;
+            let player2Count = 0;
+
+            for (let i = 0; i < element.length; i++) {
+                const e = element[i];
+                switch (e.type) {
+                    case CellType.Cross:
+                        player1Count++;
+                        break;
+                    case CellType.Circle:
+                        player2Count++;
+                        break;
+                }
+            }
+
+            if (player1Count === this._rowCount) {
+                returnValue = {
+                    winnerType: WinnerEnum.Player1, 
+                    cells: element
+                };
+                break;
+            } else if (player2Count === this._rowCount) {
+                returnValue = {
+                    winnerType: WinnerEnum.Player2, 
+                    cells: element
+                };
+                break;
+            }
+        }
+
+        return returnValue;
     }
 }
-
-
