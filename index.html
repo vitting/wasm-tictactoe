@@ -1,119 +1,156 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-    <title>My awesome Rust, WebAssembly, and Webpack application</title>
 
-    <style>
-      #container {
-        display: flex;
-        justify-content: center;  
-        align-items: center;
-        padding-top: 100px;
-        flex-direction: column;
-      }
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+  <title>My awesome Rust, WebAssembly, and Webpack application</title>
 
-      #autoGameContainer {
-        display: flex;
-        flex-direction: column;
-      }
+  <style>
+    body {
+      margin: 0px;
+      padding: 0px;
+    }
 
-      #buttonContainer {
-        width: 600px;
-        display: flex;
-        /* flex-direction: column; */
-        justify-content: space-between;
-        /* align-items: center; */
-      }
+    #container {
+      display: grid;
+      grid-template-rows: 100px auto auto;
+      justify-items: center;
+    }
 
-      #titleContainer {
-        width: 600px;
-        display: flex;
-        justify-content: center;
-        padding-bottom: 20px;
-        font-size: 25px;
-        font-family: Arial, Helvetica, sans-serif;
-      }
+    .row1 {
+      align-self: center;
+    }
 
-      #title {
-        background-color: #0bbaf0;
-        color: white;
-        padding-left: 10px;
-        padding-right: 10px;
-        padding-top: 3px;
-        padding-bottom: 3px;
-        border-radius: 4px;
-      }
+    #buttonContainer {
+      width: 600px;
+      height: 150px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
 
-      #playerToStartValue {
-        font-weight: bold;
-        color: black;
-      }
+    #autoGameContainer {
+      display: grid;
+      grid-template-rows: auto auto auto;
+      justify-content: right;
+    }
 
-      #newGameButton, #newAutoGameButton {
-        width: 200px;
-        height: 40px;
-        padding: 8px;
-        font-size: 18px;
-        background-color: transparent;
-        background-color: #052354;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        margin-top: 10px;
-      }
+    #titleContainer {
+      width: 600px;
+      font-size: 25px;
+      font-family: Arial, Helvetica, sans-serif;
+      display: grid;
+      grid-template-columns: auto auto;
+      justify-content: space-between;
+    }
 
-      #numberOfAutoRuns, #showAutoRuns {
-        width: 90px;
-        height: 30px;
-        padding: 0px 10px;
-        text-align: right;
-        font-size: 16px;
-        border-radius: 4px;
-        border: 1px solid black;
-      }
+    #title, #titleGameNumber {
+      display: none;
+      background-color: #0bbaf0;
+      color: white;
+      padding: 3px 10px 3px 10px;
+      border-radius: 4px;
+    }
 
-      #canvas {
-        width: 600px;
-        height: 600px;
-      }
+    #playerToStartValue {
+      font-weight: bold;
+      color: black;
+    }
 
-      .spacer {
-        margin-bottom: 10px;
-      }
+    #newAutoGameButton {
+      justify-self: right;
+    }
 
-      label {
-        font-size: 20px;
-        font-family: Arial, Helvetica, sans-serif;
-      }
-    </style>
-  </head>
-  <body>
-      
-    <div id="container">
-        <div id="titleContainer">
-          <div id="title">Player <span id="playerToStartValue"></span> to make a move</div>
-        </div>
-        <canvas id="canvas"></canvas>
-        <div id="buttonContainer">
-            <button id="newGameButton" type="button">NEW MANUAL GAME</button>   
-            <div id="autoGameContainer">
-                <button id="newAutoGameButton" class="spacer" type="button">NEW AUTO GAME</button>   
-                <div class="spacer">
-                    <label for="numberOfAutoRuns">Number of runs:</label>
-                    <input type="text" name="numberOfAutoRuns" id="numberOfAutoRuns" value="10" maxlength="8">
-                </div>
-                <div class="spacer">
-                    <label for="showAutoRuns">Show Moves:</label>
-                    <select name="showAutoRuns" id="showAutoRuns">
-                        <option value="0">Ja</option>
-                        <option value="1">Nej</option>
-                      </select>
-                </div>
-                
-            </div>
-        </div>
+    #numberOfAutoRunsContainer, #showAutoRunsContainer {
+      display: grid;
+      grid-template-rows: auto auto;
+      justify-content: center;
+    }
+
+    #newGameButton,
+    #newAutoGameButton {
+      width: 200px;
+      height: 40px;
+      padding: 8px;
+      font-size: 18px;
+      background-color: transparent;
+      background-color: #052354;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+
+    #numberOfAutoRuns,
+    #showAutoRuns {
+      width: 90px;
+      height: 30px;
+      padding: 0px 10px;
+      text-align: right;
+      font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid black;
+    }
+
+    #canvas {
+      width: 600px;
+      height: 600px;
+    }
+
+    label {
+      font-size: 20px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .justify-self-center {
+      justify-self: center;
+    }
+
+    .spacer-top {
+      margin-top: 10px;
+    }
+
+    .spacer-bottom {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="container">
+
+    <div id="titleContainer" class="row1">
+        <div id="title">Player <span id="playerToStartValue"></span> to make a move</div>
+        <div id= "titleGameNumber">Game nr. <span id="titleGameNumberValue"></span></div>
     </div>
-  </body>
-</html>
 
+    <div id="canvasContainer" class="row2">
+        <canvas id="canvas"></canvas>
+    </div>
+    
+    <div id="buttonContainer" class="row3 spacer-top">
+      <button id="newGameButton" type="button">NEW MANUAL GAME</button>
+
+      <div id="autoGameContainer">
+        <button id="newAutoGameButton" type="button">NEW AUTO GAME</button>
+        
+        <div>
+          <div id="numberOfAutoRunsContainer" class="spacer-top">
+            <label class="spacer-bottom" for="numberOfAutoRuns">Number of runs:</label>
+            <input type="text" class="justify-self-center" name="numberOfAutoRuns" id="numberOfAutoRuns" value="10" maxlength="8">
+          </div>
+          
+          <div id="showAutoRunsContainer" class="spacer-top">
+            <label class="spacer-bottom" for="showAutoRuns">Show Moves:</label>
+            <select name="showAutoRuns" id="showAutoRuns" class="justify-self-center">
+              <option value="1">Ja</option>
+              <option value="0">Nej</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+
+</html>
