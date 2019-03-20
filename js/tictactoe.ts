@@ -1,4 +1,6 @@
-import { CellType, WinnerEnum, IMove, IParseResult, IMousePos, IRowCol, IWinner } from "./tictactoe_types";
+import * as _ from "lodash";
+import { CellType, WinnerEnum, IMove, IParseResult, IMousePos, IRowCol, IWinner, MoveState, sleep } from "./tictactoe_types";
+
 
 export class TicTacToe {
     private _canvas: HTMLCanvasElement;
@@ -18,17 +20,63 @@ export class TicTacToe {
     private _cellElementFillColor: string = "rgba(5,35,84, 0.5)";
     private _messageElementFillColor: string = "rgba(42, 163, 97, 0.8)";
     private _messageTextElementFillColor: string = "rgba(255, 255, 255, 1)";
+    private _isCanvasEventListenerAdded = false;
 
     constructor() {}
 
-    public run() {
-        this._button = document.getElementById("newGameButton") as HTMLButtonElement;
-    
-        this._button.addEventListener("click", (_e) => {
-            this.newGame(true);
-        });
-
+    public init() {
         this.initRun();    
+    }
+
+    public async runAuto(numberOfGames: number, showMoves: boolean = false) {
+        for (let index = 0; index < numberOfGames; index++) {
+            this.newGame(false);    
+            await this.autoMakeMoves(showMoves);
+        }
+    }
+
+    public newGame(enableCanvasClick: boolean) {
+        this._currentPlayer = 0;
+        this._moveCount = 0;
+        this._moves = [];    
+        this.clearGrid();
+        this.drawGrid();
+        
+        if (enableCanvasClick && !this._isCanvasEventListenerAdded) {
+            this._canvas.addEventListener("click", (e) => this.canvasClick(e));
+            this._isCanvasEventListenerAdded = true;
+        }
+        
+        this.setPlayerToMove(this.getPlayerToStart());
+    }    
+
+    private async autoMakeMoves(showMoves: boolean) {
+        let moveIndex = this.autoGetIndex();
+        
+        while (this.addMove(moveIndex) === MoveState.Started) {
+            if (showMoves) {
+                await sleep(500);
+            }
+            
+            moveIndex = this.autoGetIndex();
+        }
+
+        if (showMoves) {
+            await sleep(500);
+        }
+    }
+
+    private autoGetIndex(): number {
+        let freeCells = [];
+
+        for (let index = 0; index < this._moves.length; index++) {
+            const move = this._moves[index];
+            if (move.type === CellType.None) {
+                freeCells.push(index);
+            }
+        }
+
+        return freeCells[_.random(freeCells.length - 1)];
     }
 
     private initRun() {
@@ -41,27 +89,15 @@ export class TicTacToe {
         this.drawGrid(); 
     }
 
-    private newGame(enableCanvasClick: boolean) {
-        this._currentPlayer = 0;
-        this._moveCount = 0;
-        this._moves = [];    
-        this.clearGrid();
-        this.drawGrid();
-        
-        if (enableCanvasClick) {
-            this._canvas.addEventListener("click", (e) => this.canvasClick(e));
-        }
-        
-        this.setPlayerToMove(this.getPlayerToStart());
-    }    
-
     private canvasClick(e: MouseEvent) {
         let index = this.getIndex(this.getRowCol(this.getMousePos(this._canvas, e)));
-        this.addMove(index);
+        let state = this.addMove(index);
     }
 
-    private addMove(cell: number) {
+    private addMove(cell: number): MoveState {
+        let state = MoveState.Finished;
         let move: IMove = this._moves[cell];
+
         if (move.type === 0 && this.isThereMoreMoves()) {
             if (this._currentPlayer === 1) {
                 this._moves[cell].type = CellType.Cross;
@@ -75,34 +111,29 @@ export class TicTacToe {
 
             this._moveCount++;
             
-            this.moveCheck();   
+            state = this.moveCheck();   
         }
+
+        return state;
     }
 
-    private moveCheck() {
+    private moveCheck(): MoveState {
+        let state = MoveState.Started;
         const winner = this.checkForWinner(this.parseCells());
         if (winner.winnerType != WinnerEnum.None) {
             this._moveCount = 10;
             this.drawWinner(winner.cells);
-            this.showHidePlayerToMove(false);
             this.drawMessage(`Winner is player ${winner.winnerType}!`);
+            state = MoveState.Finished;
         } else if (!this.isThereMoreMoves()) {
-            this.showHidePlayerToMove(false);
             this.drawMessage("No winner!");
+            state = MoveState.Finished;
         }
+
+        return state;
     }
 
-    private showHidePlayerToMove(show: boolean) {
-        const playerToStart = document.getElementById("title");
-        if (show) {
-            playerToStart.style.display = "block";
-        } else {
-            playerToStart.style.display = "none";
-        }
-    }
-    
     private setPlayerToMove(playerNymber: number) {
-        this.showHidePlayerToMove(true);
         const playerToStartText = document.getElementById("playerToStartValue");
         this._currentPlayer = playerNymber;
         playerToStartText.innerText = this._currentPlayer.toString();

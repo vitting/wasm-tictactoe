@@ -13,17 +13,29 @@
         flex-direction: column;
       }
 
+      #autoGameContainer {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #buttonContainer {
+        width: 600px;
+        display: flex;
+        /* flex-direction: column; */
+        justify-content: space-between;
+        /* align-items: center; */
+      }
+
       #titleContainer {
         width: 600px;
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         padding-bottom: 20px;
         font-size: 25px;
         font-family: Arial, Helvetica, sans-serif;
       }
 
       #title {
-        display:  none;
         background-color: #0bbaf0;
         color: white;
         padding-left: 10px;
@@ -38,7 +50,9 @@
         color: black;
       }
 
-      #newGameButton {
+      #newGameButton, #newAutoGameButton {
+        width: 200px;
+        height: 40px;
         padding: 8px;
         font-size: 18px;
         background-color: transparent;
@@ -46,11 +60,31 @@
         color: white;
         border: none;
         border-radius: 4px;
+        margin-top: 10px;
+      }
+
+      #numberOfAutoRuns, #showAutoRuns {
+        width: 90px;
+        height: 30px;
+        padding: 0px 10px;
+        text-align: right;
+        font-size: 16px;
+        border-radius: 4px;
+        border: 1px solid black;
       }
 
       #canvas {
         width: 600px;
         height: 600px;
+      }
+
+      .spacer {
+        margin-bottom: 10px;
+      }
+
+      label {
+        font-size: 20px;
+        font-family: Arial, Helvetica, sans-serif;
       }
     </style>
   </head>
@@ -58,12 +92,28 @@
       
     <div id="container">
         <div id="titleContainer">
-          <button id="newGameButton" type="button">NEW GAME</button>   
           <div id="title">Player <span id="playerToStartValue"></span> to make a move</div>
         </div>
         <canvas id="canvas"></canvas>
+        <div id="buttonContainer">
+            <button id="newGameButton" type="button">NEW MANUAL GAME</button>   
+            <div id="autoGameContainer">
+                <button id="newAutoGameButton" class="spacer" type="button">NEW AUTO GAME</button>   
+                <div class="spacer">
+                    <label for="numberOfAutoRuns">Number of runs:</label>
+                    <input type="text" name="numberOfAutoRuns" id="numberOfAutoRuns" value="10" maxlength="8">
+                </div>
+                <div class="spacer">
+                    <label for="showAutoRuns">Show Moves:</label>
+                    <select name="showAutoRuns" id="showAutoRuns">
+                        <option value="0">Ja</option>
+                        <option value="1">Nej</option>
+                      </select>
+                </div>
+                
+            </div>
+        </div>
     </div>
-    
   </body>
 </html>
 
