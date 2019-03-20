@@ -25,7 +25,7 @@ export class TicTacToe {
         this._button = document.getElementById("newGameButton") as HTMLButtonElement;
     
         this._button.addEventListener("click", (_e) => {
-            this.newGame();
+            this.newGame(true);
         });
 
         this.initRun();    
@@ -41,14 +41,16 @@ export class TicTacToe {
         this.drawGrid(); 
     }
 
-    private newGame() {
+    private newGame(enableCanvasClick: boolean) {
         this._currentPlayer = 0;
         this._moveCount = 0;
         this._moves = [];    
         this.clearGrid();
         this.drawGrid();
         
-        this._canvas.addEventListener("click", (e) => this.canvasClick(e));
+        if (enableCanvasClick) {
+            this._canvas.addEventListener("click", (e) => this.canvasClick(e));
+        }
         
         this.setPlayerToMove(this.getPlayerToStart());
     }    
@@ -90,18 +92,6 @@ export class TicTacToe {
         }
     }
 
-    private showText(text: string) {
-        this.showHidePlayerToMove(false);
-        const textContainer = document.getElementById("textContainer");
-        if (text != "") {
-            textContainer.style.display = "block";
-            textContainer.innerText = text;
-        } else {
-            textContainer.style.display = "none";
-        }
-        
-    }
-
     private showHidePlayerToMove(show: boolean) {
         const playerToStart = document.getElementById("title");
         if (show) {
@@ -112,7 +102,6 @@ export class TicTacToe {
     }
     
     private setPlayerToMove(playerNymber: number) {
-        this.showText("");
         this.showHidePlayerToMove(true);
         const playerToStartText = document.getElementById("playerToStartValue");
         this._currentPlayer = playerNymber;
