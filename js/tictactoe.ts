@@ -16,6 +16,8 @@ export class TicTacToe {
     private _cellElementColor: string = "#052354";
     private _gridColor: string = "#000000";
     private _cellElementFillColor: string = "rgba(5,35,84, 0.5)";
+    private _messageElementFillColor: string = "rgba(42, 163, 97, 0.8)";
+    private _messageTextElementFillColor: string = "rgba(255, 255, 255, 1)";
 
     constructor() {}
 
@@ -49,7 +51,6 @@ export class TicTacToe {
         this._canvas.addEventListener("click", (e) => this.canvasClick(e));
         
         this.setPlayerToMove(this.getPlayerToStart());
-        // this.showHidePlayerToMove(true);
     }    
 
     private canvasClick(e: MouseEvent) {
@@ -72,12 +73,20 @@ export class TicTacToe {
 
             this._moveCount++;
             
-            const winner = this.checkForWinner(this.parseCells());
-            if (winner.winnerType != WinnerEnum.None) {
-                this._moveCount = 10;
-                this.drawWinner(winner.cells);
-                this.showText("Winner is player " + winner.winnerType);
-            }
+            this.moveCheck();   
+        }
+    }
+
+    private moveCheck() {
+        const winner = this.checkForWinner(this.parseCells());
+        if (winner.winnerType != WinnerEnum.None) {
+            this._moveCount = 10;
+            this.drawWinner(winner.cells);
+            this.showHidePlayerToMove(false);
+            this.drawMessage(`Winner is player ${winner.winnerType}!`);
+        } else if (!this.isThereMoreMoves()) {
+            this.showHidePlayerToMove(false);
+            this.drawMessage("No winner!");
         }
     }
 
@@ -176,8 +185,15 @@ export class TicTacToe {
         });
     }
 
-    private drawMessage() {
-        
+    private drawMessage(text: string) {
+        this._ctx.beginPath();
+        this._ctx.fillStyle = this._messageElementFillColor;
+        this._ctx.fillRect(60, (this._canvas.height / 2) - 40, this._canvas.width - 120, 80);
+        this._ctx.font = "30px Arial";
+        this._ctx.fillStyle = this._messageTextElementFillColor;
+        this._ctx.textAlign = "center";
+        this._ctx.fillText(text, this._canvas.width / 2, (this._canvas.height / 2) + 10); 
+        this._ctx.closePath();
     }
 
     private drawWinner(cells: IMove[]) {
