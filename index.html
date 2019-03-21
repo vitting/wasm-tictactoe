@@ -9,16 +9,13 @@
     body {
       margin: 0px;
       padding: 0px;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
     #container {
       display: grid;
       grid-template-rows: 100px auto auto;
       justify-items: center;
-    }
-
-    .row1 {
-      align-self: center;
     }
 
     #buttonContainer {
@@ -37,13 +34,13 @@
     #titleContainer {
       width: 600px;
       font-size: 25px;
-      font-family: Arial, Helvetica, sans-serif;
       display: grid;
       grid-template-columns: auto auto;
       justify-content: space-between;
     }
 
-    #title, #titleGameNumber {
+    #title,
+    #titleGameNumber {
       display: none;
       background-color: #0bbaf0;
       color: white;
@@ -60,12 +57,6 @@
       justify-self: right;
     }
 
-    #numberOfAutoRunsContainer, #showAutoRunsContainer {
-      display: grid;
-      grid-template-rows: auto auto;
-      justify-content: center;
-    }
-
     #newGameButton,
     #newAutoGameButton {
       width: 200px;
@@ -79,25 +70,59 @@
       border-radius: 4px;
     }
 
-    #numberOfAutoRuns,
-    #showAutoRuns {
-      width: 90px;
-      height: 30px;
-      padding: 0px 10px;
-      text-align: right;
-      font-size: 16px;
-      border-radius: 4px;
-      border: 1px solid black;
-    }
-
     #canvas {
       width: 600px;
       height: 600px;
     }
 
+    #resultContainer {
+      display: none;
+      background-color: rgba(0, 0, 0, 0.9);
+      color: white;
+      position: absolute;
+      width: 250px;
+      right: 10px;
+      top: 10px;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 5px;
+      overflow: auto;
+      height: 900px;
+    }
+
+    #resultList {
+      font-size: 12px;
+      text-align: left;
+      margin-left: 10px;
+    }
+
+    #resultTitle {
+      text-align: start;
+    }
+
+    #resultsTime {
+      font-size: 12px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
+    input,
+    select {
+      width: 90px;
+      height: 30px;
+      padding: 0px 10px;
+      text-align: right;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid black;
+    }
+
     label {
-      font-size: 20px;
-      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .row1 {
+      align-self: center;
     }
 
     .justify-self-center {
@@ -111,40 +136,73 @@
     .spacer-bottom {
       margin-bottom: 5px;
     }
+
+    .grid-2-row-center {
+      display: grid;
+      grid-template-rows: auto auto;
+      justify-content: center;
+    }
+
+    .italic {
+      font-style: italic;
+    }
   </style>
 </head>
 
 <body>
+  <div id="resultContainer">
+    <div id="resultTitle">Auto results:</div>
+    <div id="resultsTime"></div>
+    <div id="resultList">
+      <div>10. Winner is player 1!</div>
+    </div>
+  </div>
+
 
   <div id="container">
 
     <div id="titleContainer" class="row1">
-        <div id="title">Player <span id="playerToStartValue"></span> to make a move</div>
-        <div id= "titleGameNumber">Game nr. <span id="titleGameNumberValue"></span></div>
+      <div id="title">Player <span id="playerToStartValue"></span> to make a move</div>
+      <div id="titleGameNumber">Game nr. <span id="titleGameNumberValue"></span></div>
     </div>
 
     <div id="canvasContainer" class="row2">
-        <canvas id="canvas"></canvas>
+      <canvas id="canvas"></canvas>
     </div>
-    
+
     <div id="buttonContainer" class="row3 spacer-top">
       <button id="newGameButton" type="button">NEW MANUAL GAME</button>
 
       <div id="autoGameContainer">
         <button id="newAutoGameButton" type="button">NEW AUTO GAME</button>
-        
+        <div class="justify-self-center italic">(WarGames style)</div>
+
         <div>
-          <div id="numberOfAutoRunsContainer" class="spacer-top">
+          <div id="numberOfAutoRunsContainer" class="spacer-top grid-2-row-center">
             <label class="spacer-bottom" for="numberOfAutoRuns">Number of runs:</label>
-            <input type="text" class="justify-self-center" name="numberOfAutoRuns" id="numberOfAutoRuns" value="10" maxlength="8">
+            <input type="text" class="justify-self-center" name="numberOfAutoRuns" id="numberOfAutoRuns" value="10"
+              maxlength="8">
           </div>
-          
-          <div id="showAutoRunsContainer" class="spacer-top">
+
+          <div id="showAutoRunsContainer" class="spacer-top grid-2-row-center">
             <label class="spacer-bottom" for="showAutoRuns">Show Moves:</label>
             <select name="showAutoRuns" id="showAutoRuns" class="justify-self-center">
               <option value="1">Ja</option>
               <option value="0">Nej</option>
             </select>
+          </div>
+
+          <div id="showResultContainer" class="spacer-top grid-2-row-center">
+            <label class="spacer-bottom" for="showAutoRuns">Show Result:</label>
+            <select name="showResult" id="showResult" class="justify-self-center">
+              <option value="1">Ja</option>
+              <option value="0">Nej</option>
+            </select>
+          </div>
+
+          <div id="numberOfmsContainer" class="spacer-top grid-2-row-center">
+            <label class="spacer-bottom" for="numberOfms">MS for move:</label>
+            <input type="text" class="justify-self-center" name="numberOfms" id="numberOfms" value="250" maxlength="8">
           </div>
         </div>
       </div>

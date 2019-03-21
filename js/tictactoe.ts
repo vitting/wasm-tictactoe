@@ -20,22 +20,33 @@ export class TicTacToe {
     private _messageElementFillColor: string = "rgba(42, 163, 97, 0.8)";
     private _messageTextElementFillColor: string = "rgba(255, 255, 255, 1)";
     private _isCanvasEventListenerAdded = false;
-
+    private _autoRunWinners: number[] = [];
+/// TODO: Statestik
     constructor() {}
 
     public init() {
         this.initRun();    
     }
 
-    public async runAuto(numberOfGames: number, showMoves: boolean = false) {
+    public async runAuto(numberOfGames: number, showMoves: boolean = false, moveMs: number = 250, showResult: boolean = false) {
+        let start: number = Date.now();
+        let end: number = 0;
+        this._autoRunWinners = [];
+        this.addResult(null);   
+        this.showResults(showResult);
+        
         for (let index = 0; index < numberOfGames; index++) {
-            this.newGame(false);    
+            this.newGame(false, showResult);    
             this.setGameMoveText((index + 1).toString());   
-            await this.autoMakeMoves(showMoves);
+            await this.autoMakeMoves(showMoves, (index + 1), moveMs);
         }
+
+        end = Date.now();
+        let stat = this.autoStatistic(numberOfGames);
+        this.setResultTime(`${numberOfGames.toString()} Games played in ${(end-start).toString()} ms.\n Player1 won: ${stat[0]}, Player2 won: ${stat[1]}, draws: ${stat[2]}`);
     }
 
-    public newGame(enableCanvasClick: boolean) {
+    public newGame(enableCanvasClick: boolean, showResult: boolean = false) {
         this._currentPlayer = 0;
         this._moveCount = 0;
         this._moves = [];    
@@ -44,29 +55,38 @@ export class TicTacToe {
         this.setGameMoveText();
         if (enableCanvasClick && !this._isCanvasEventListenerAdded) {
             this.showGameNumber(false);
+            this.showResults(false);
             this._canvas.addEventListener("click", (e) => this.canvasClick(e));
             this._isCanvasEventListenerAdded = true;
         } else {
             this.showGameNumber(true);
-            this.setGameMoveText("0");   
+            this.setGameMoveText("0");
+            this.showResults(showResult);
         }
         
         this.setPlayerToMove(this.getPlayerToStart());
     }    
 
-    private async autoMakeMoves(showMoves: boolean) {
+    private autoStatistic(numberOfGames: number): [number, number, number] {
+        let player1Count = this._autoRunWinners.filter((value) => value === 1).length;
+        let player2Count = this._autoRunWinners.length - player1Count;
+        let draws = numberOfGames - (player1Count + player2Count);
+        return [player1Count, player2Count, draws];
+    }
+
+    private async autoMakeMoves(showMoves: boolean, autoRunNumber: number, moveMs: number) {
         let moveIndex = this.autoGetIndex();
         
-        while (this.addMove(moveIndex) === MoveState.Started) {
+        while (this.addMove(moveIndex, autoRunNumber) === MoveState.Started) {
             if (showMoves) {
-                await sleep(500);
+                await sleep(moveMs);
             }
             
             moveIndex = this.autoGetIndex();
         }
 
         if (showMoves) {
-            await sleep(500);
+            await sleep(moveMs);
         }
     }
 
@@ -98,7 +118,7 @@ export class TicTacToe {
         let state = this.addMove(index);
     }
 
-    private addMove(cell: number): MoveState {
+    private addMove(cell: number, autoRunNumber: number = 0): MoveState {
         let state = MoveState.Finished;
         let move: IMove = this._moves[cell];
 
@@ -114,27 +134,34 @@ export class TicTacToe {
             }
 
             this._moveCount++;
-            state = this.moveCheck();   
+            state = this.moveCheck(autoRunNumber);   
         }
 
         return state;
     }
 
-    private moveCheck(): MoveState {
+    private moveCheck(autoRunNumber: number = 0): MoveState {
         let state = MoveState.Started;
         const winner = this.checkForWinner(this.parseCells());
         if (winner.winnerType != WinnerEnum.None) {
+            let moveCount = this._moveCount;
             this._moveCount = 10;
             this.drawWinner(winner.cells);
             this.drawMessage(`Winner is player ${winner.winnerType}!`);
             state = MoveState.Finished;
             this.showHidePlayerToMove(false);
             this.showGameNumber(false);
+            this.addResult(`${autoRunNumber}. Winner is player ${winner.winnerType} (${moveCount})`);
+
+            if (autoRunNumber !== 0) {
+                winner.winnerType === WinnerEnum.Player1 ? this._autoRunWinners.push(1) : this._autoRunWinners.push(2);
+            }
         } else if (!this.isThereMoreMoves()) {
             this.drawMessage("No winner!");
             state = MoveState.Finished;
             this.showHidePlayerToMove(false);
             this.showGameNumber(false);
+            this.addResult(`${autoRunNumber}. Was a draw!`);
         }
 
         return state;
@@ -176,6 +203,32 @@ export class TicTacToe {
             titleGameNumber.style.display = "block";
         } else {
             titleGameNumber.style.display = "none";
+        }
+    }
+
+    private setResultTime(text: string) {
+        let elem = document.getElementById("resultsTime");        
+        elem.innerText = text;
+    }
+
+    private addResult(text: string) {
+        let list = document.getElementById("resultList");        
+        if (text !== null) {
+            let div = document.createElement("div");
+            div.innerText = text;
+            list.appendChild(div);
+        } else {
+            list.innerHTML = "";
+        }
+    }
+
+    private showResults(show: boolean) {
+        const results = document.getElementById("resultContainer");
+        
+        if (show) {
+            results.style.display = "block";
+        } else {
+            results.style.display = "none";
         }
     }
     
@@ -240,7 +293,6 @@ export class TicTacToe {
                     type: CellType.None
                 });
             });
-    
         });
     }
 
@@ -320,14 +372,14 @@ export class TicTacToe {
         };
     }
     
-    private getCellCoordinates(rowCol: IRowCol) {
-        let x = rowCol.col * this._cellWidth;
-        let y = rowCol.row * this._cellHeight;
-        return {
-            x: x,
-            y: y
-        }
-    }
+    // private getCellCoordinates(rowCol: IRowCol) {
+    //     let x = rowCol.col * this._cellWidth;
+    //     let y = rowCol.row * this._cellHeight;
+    //     return {
+    //         x: x,
+    //         y: y
+    //     }
+    // }
     
     private getIndex(rowCol: IRowCol) {
         return rowCol.row * this._colCount + rowCol.col;
